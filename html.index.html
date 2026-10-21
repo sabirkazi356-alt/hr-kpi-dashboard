@@ -1,0 +1,1841 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Enterprise HR KPI & BI Dashboard - Sabir Kazi</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Chart.js & Plugins -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
+  <!-- SheetJS for multi-sheet processing -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+  <!-- html2canvas for High Quality Dashboard Downloads -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <style>
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #0b1120; color: #f1f5f9; }
+    
+    /* Modern Compact Dark Theme KPI Card */
+    .dark-kpi-card {
+      background: linear-gradient(180deg, #162032 0%, #0f172a 100%);
+      border: 1px solid #1e293b;
+      border-left: 3.5px solid #3b82f6;
+      border-radius: 12px;
+      padding: 12px 14px;
+      box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.5);
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      cursor: pointer;
+      user-select: none;
+    }
+    .dark-kpi-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 15px 25px -5px rgba(59, 130, 246, 0.25);
+      border-color: #38bdf8;
+    }
+    .dark-kpi-card.male-card { border-left-color: #06b6d4; }
+    .dark-kpi-card.female-card { border-left-color: #ec4899; }
+    .dark-kpi-card.regret-card { border-left-color: #8b5cf6; }
+    .dark-kpi-card.non-regret-card { border-left-color: #0284c7; }
+
+    .custom-scrollbar::-webkit-scrollbar { width: 5px; height: 5px; }
+    .custom-scrollbar::-webkit-scrollbar-track { background: #0f172a; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+  </style>
+</head>
+<body class="flex h-screen overflow-hidden text-slate-200">
+
+  <!-- ================= SIDEBAR NAVIGATION ================= -->
+  <aside class="w-64 bg-slate-950 text-slate-200 flex flex-col flex-shrink-0 z-20 shadow-2xl border-r border-slate-800">
+    <div class="p-4 bg-slate-950 flex items-center gap-3 border-b border-slate-800">
+      <div class="w-10 h-10 bg-emerald-600 rounded-lg flex items-center justify-center font-black text-xl text-white shadow-lg shadow-emerald-900/50">X</div>
+      <div>
+        <h1 class="text-sm font-bold tracking-wider text-white">HR ANALYTICS</h1>
+        <p class="text-[11px] text-emerald-400">BI Suite</p>
+      </div>
+    </div>
+
+    <!-- Navigation Menu -->
+    <nav class="flex-1 overflow-y-auto p-3 space-y-1.5 text-sm font-medium custom-scrollbar" id="sidebar-nav">
+      <button onclick="switchTab('overview')" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-left transition bg-emerald-600 text-white shadow-sm" data-tab="overview">
+        <i class="fa-solid fa-gauge-high w-5 text-center"></i> Overview
+      </button>
+      <button onclick="switchTab('employee-details')" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-left transition hover:bg-slate-900 text-slate-300" data-tab="employee-details">
+        <i class="fa-solid fa-address-card w-5 text-center"></i> Employee Details
+      </button>
+      <button onclick="switchTab('employee-separation')" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-left transition hover:bg-slate-900 text-slate-300" data-tab="employee-separation">
+        <i class="fa-solid fa-user-xmark w-5 text-center"></i> Employee Separation
+      </button>
+      <button onclick="switchTab('performance')" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-left transition hover:bg-slate-900 text-slate-300" data-tab="performance">
+        <i class="fa-solid fa-chart-line w-5 text-center"></i> Performance
+      </button>
+      <button onclick="switchTab('recruitment')" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-left transition hover:bg-slate-900 text-slate-300" data-tab="recruitment">
+        <i class="fa-solid fa-user-plus w-5 text-center"></i> Recruitment
+      </button>
+      <button onclick="switchTab('training')" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-left transition hover:bg-slate-900 text-slate-300" data-tab="training">
+        <i class="fa-solid fa-graduation-cap w-5 text-center"></i> Training & Dev
+      </button>
+      <button onclick="switchTab('attrition')" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-left transition hover:bg-slate-900 text-slate-300" data-tab="attrition">
+        <i class="fa-solid fa-user-minus w-5 text-center"></i> Attrition
+      </button>
+      <button onclick="switchTab('reports')" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-left transition hover:bg-slate-900 text-slate-300" data-tab="reports">
+        <i class="fa-solid fa-file-lines w-5 text-center"></i> Section Data View
+      </button>
+    </nav>
+
+    <!-- Professional Signature in Sidebar -->
+    <div class="p-3 bg-slate-950 border-t border-slate-800 text-[11px] text-slate-400 text-center">
+      <p class="font-semibold text-slate-300">Developed & Designed by</p>
+      <p class="text-emerald-400 font-bold tracking-wide">Sabir Kazi</p>
+      <p class="text-[10px] text-slate-500">HR Professional & AI Specialist</p>
+    </div>
+  </aside>
+
+  <!-- ================= MAIN WORKSPACE ================= -->
+  <main class="flex-1 flex flex-col h-full overflow-hidden bg-slate-900">
+    
+    <!-- Top Global Filters Header -->
+    <header class="bg-slate-950 border-b border-slate-800 px-6 py-2.5 shadow-md z-10">
+      <div class="flex flex-wrap items-center justify-between gap-3">
+        
+        <div class="flex items-center gap-2">
+          <span class="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
+            <i class="fa-solid fa-filter text-indigo-400"></i> Filters:
+          </span>
+        </div>
+
+        <!-- Filter Controls -->
+        <div class="flex flex-wrap items-center gap-2 text-xs">
+          <!-- Year Slicer -->
+          <div class="flex items-center gap-1 bg-slate-900 border border-slate-700 rounded-lg px-2 py-1">
+            <label class="text-slate-400 font-medium">Year:</label>
+            <select id="filter-year" onchange="triggerFilterUpdate()" class="bg-transparent focus:outline-none font-semibold text-slate-200">
+              <option value="All" class="bg-slate-900">All</option>
+              <option value="2020" class="bg-slate-900">2020</option>
+              <option value="2021" class="bg-slate-900">2021</option>
+              <option value="2022" class="bg-slate-900">2022</option>
+              <option value="2023" class="bg-slate-900">2023</option>
+              <option value="2024" class="bg-slate-900">2024</option>
+              <option value="2025" class="bg-slate-900">2025</option>
+              <option value="2026" class="bg-slate-900">2026</option>
+              <option value="2027" class="bg-slate-900">2027</option>
+            </select>
+          </div>
+
+          <!-- Month Slicer -->
+          <div class="flex items-center gap-1 bg-slate-900 border border-slate-700 rounded-lg px-2 py-1">
+            <label class="text-slate-400 font-medium">Month:</label>
+            <select id="filter-month" onchange="triggerFilterUpdate()" class="bg-transparent focus:outline-none font-semibold text-slate-200">
+              <option value="All" class="bg-slate-900">All</option>
+              <option value="1" class="bg-slate-900">Jan</option>
+              <option value="2" class="bg-slate-900">Feb</option>
+              <option value="3" class="bg-slate-900">Mar</option>
+              <option value="4" class="bg-slate-900">Apr</option>
+              <option value="5" class="bg-slate-900">May</option>
+              <option value="6" class="bg-slate-900">Jun</option>
+              <option value="7" class="bg-slate-900">Jul</option>
+              <option value="8" class="bg-slate-900">Aug</option>
+              <option value="9" class="bg-slate-900">Sep</option>
+              <option value="10" class="bg-slate-900">Oct</option>
+              <option value="11" class="bg-slate-900">Nov</option>
+              <option value="12" class="bg-slate-900">Dec</option>
+            </select>
+          </div>
+
+          <!-- Region Filter -->
+          <div class="flex items-center gap-1 bg-indigo-950/60 border border-indigo-700/60 rounded-lg px-2 py-1">
+            <label class="text-indigo-400 font-bold"><i class="fa-solid fa-map-location-dot mr-1"></i>Region:</label>
+            <select id="filter-region" onchange="onRegionChange()" class="bg-transparent focus:outline-none font-bold text-indigo-200 max-w-[130px]">
+              <option value="All" class="bg-slate-900">All Regions</option>
+            </select>
+          </div>
+
+          <!-- Area Filter -->
+          <div class="flex items-center gap-1 bg-blue-950/60 border border-blue-700/60 rounded-lg px-2 py-1">
+            <label class="text-blue-400 font-bold"><i class="fa-solid fa-location-crosshairs mr-1"></i>Area:</label>
+            <select id="filter-area" onchange="onAreaChange()" class="bg-transparent focus:outline-none font-bold text-blue-200 max-w-[130px]">
+              <option value="All" class="bg-slate-900">All Areas</option>
+            </select>
+          </div>
+
+          <!-- Branch Filter -->
+          <div class="flex items-center gap-1 bg-emerald-950/60 border border-emerald-700/60 rounded-lg px-2 py-1">
+            <label class="text-emerald-400 font-bold"><i class="fa-solid fa-building mr-1"></i>Branch / SC:</label>
+            <select id="filter-branch" onchange="triggerFilterUpdate()" class="bg-transparent focus:outline-none font-bold text-emerald-200 max-w-[140px]">
+              <option value="All" class="bg-slate-900">All Branches</option>
+            </select>
+          </div>
+
+          <!-- Dept Filter -->
+          <div class="flex items-center gap-1 bg-slate-900 border border-slate-700 rounded-lg px-2 py-1">
+            <label class="text-slate-400 font-medium">Dept:</label>
+            <select id="filter-department" onchange="triggerFilterUpdate()" class="bg-transparent focus:outline-none font-semibold text-slate-200 max-w-[120px]">
+              <option value="All" class="bg-slate-900">All Depts</option>
+              <option value="Information Technology" class="bg-slate-900">Information Technology</option>
+              <option value="Business Banking" class="bg-slate-900">Business Banking</option>
+              <option value="Administration" class="bg-slate-900">Administration</option>
+              <option value="Training" class="bg-slate-900">Training</option>
+              <option value="Risk" class="bg-slate-900">Risk</option>
+              <option value="Human Resources" class="bg-slate-900">Human Resources</option>
+              <option value="Centralized Operations" class="bg-slate-900">Centralized Operations</option>
+              <option value="Internal Audit" class="bg-slate-900">Internal Audit</option>
+              <option value="Branch Operations" class="bg-slate-900">Branch Operations</option>
+              <option value="Service Quality" class="bg-slate-900">Service Quality</option>
+              <option value="Recovery" class="bg-slate-900">Recovery</option>
+              <option value="Finance" class="bg-slate-900">Finance</option>
+              <option value="Investment & Corporate Strategy" class="bg-slate-900">Investment & Corporate Strategy</option>
+              <option value="Marketing" class="bg-slate-900">Marketing</option>
+              <option value="Compliance" class="bg-slate-900">Compliance</option>
+              <option value="Digital" class="bg-slate-900">Digital</option>
+              <option value="Legal Affairs" class="bg-slate-900">Legal Affairs</option>
+              <option value="Audit" class="bg-slate-900">Audit</option>
+            </select>
+          </div>
+
+          <!-- Download Dashboard Action Button -->
+          <button onclick="downloadDashboardAsImage()" class="bg-indigo-600 hover:bg-indigo-500 text-white font-semibold px-2.5 py-1 rounded-lg flex items-center gap-1.5 shadow-sm transition" title="Export this Dashboard View">
+            <i class="fa-solid fa-camera"></i> <span>Export View</span>
+          </button>
+
+          <button onclick="resetGlobalFilters()" class="text-slate-400 hover:text-rose-400 transition p-1" title="Reset Filters">
+            <i class="fa-solid fa-arrow-rotate-left"></i>
+          </button>
+        </div>
+
+      </div>
+    </header>
+
+    <!-- Content Workspace -->
+    <div class="flex-1 overflow-y-auto p-6 custom-scrollbar" id="view-container">
+      
+      <!-- Section Controls Bar (Hidden in Overview) -->
+      <div id="section-controls-bar" class="bg-slate-950/80 rounded-xl shadow-lg border border-slate-800 p-4 mb-6">
+        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+          
+          <!-- Section Info & Isolated Upload -->
+          <div class="flex items-center gap-4">
+            <div>
+              <h2 id="view-title" class="text-xl font-bold text-white capitalize flex items-center gap-2">
+                Section Overview
+              </h2>
+              <span id="file-status-badge" class="text-[11px] font-medium text-amber-400 bg-amber-950/40 px-2.5 py-0.5 rounded-full border border-amber-800 inline-block mt-0.5">
+                No file uploaded for this section
+              </span>
+            </div>
+
+            <label class="cursor-pointer bg-emerald-600 hover:bg-emerald-500 text-white px-3.5 py-2 rounded-lg text-xs font-semibold flex items-center gap-2 shadow-sm transition">
+              <i class="fa-solid fa-cloud-arrow-up"></i> Upload Section Excel
+              <input type="file" id="section-file-upload" accept=".xlsx, .xls, .csv" class="hidden" onchange="handleSectionUpload(event)">
+            </label>
+          </div>
+
+          <!-- 3 Sub-Sheet Selector Slots -->
+          <div class="flex flex-wrap items-center gap-3 bg-slate-900 p-2 rounded-lg border border-slate-800">
+            <span class="text-xs font-bold text-slate-300 flex items-center gap-1">
+              <i class="fa-solid fa-layer-group text-indigo-400"></i> Active Sub-Sheets:
+            </span>
+
+            <div class="flex items-center gap-1 text-xs">
+              <span class="text-[10px] font-bold text-emerald-400 bg-emerald-950 px-1.5 py-0.5 rounded border border-emerald-800">S1</span>
+              <select id="subsheet-slot-1" onchange="updateSubSheetSlot(1)" class="border border-slate-700 rounded px-2 py-1 bg-slate-950 font-medium text-slate-200 text-xs focus:ring-1 focus:ring-indigo-500">
+                <option value="">None</option>
+              </select>
+            </div>
+
+            <div class="flex items-center gap-1 text-xs">
+              <span class="text-[10px] font-bold text-blue-400 bg-blue-950 px-1.5 py-0.5 rounded border border-blue-800">S2</span>
+              <select id="subsheet-slot-2" onchange="updateSubSheetSlot(2)" class="border border-slate-700 rounded px-2 py-1 bg-slate-950 font-medium text-slate-200 text-xs focus:ring-1 focus:ring-indigo-500">
+                <option value="">None</option>
+              </select>
+            </div>
+
+            <div class="flex items-center gap-1 text-xs">
+              <span class="text-[10px] font-bold text-purple-400 bg-purple-950 px-1.5 py-0.5 rounded border border-purple-800">S3</span>
+              <select id="subsheet-slot-3" onchange="updateSubSheetSlot(3)" class="border border-slate-700 rounded px-2 py-1 bg-slate-950 font-medium text-slate-200 text-xs focus:ring-1 focus:ring-indigo-500">
+                <option value="">None</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Add Buttons -->
+          <div class="flex items-center gap-2">
+            <button onclick="openKpiModal()" class="bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-2 rounded-lg text-xs font-semibold flex items-center gap-1.5 shadow-sm transition">
+              <i class="fa-solid fa-plus"></i> Add KPI Card
+            </button>
+            <button onclick="openChartModal()" class="bg-indigo-600 hover:bg-indigo-500 text-white px-3 py-2 rounded-lg text-xs font-semibold flex items-center gap-1.5 shadow-sm transition">
+              <i class="fa-solid fa-chart-simple"></i> Add Chart
+            </button>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Section Title for Overview tab -->
+      <div id="overview-header" class="mb-5 flex flex-wrap items-center justify-between gap-4 hidden">
+        <div>
+          <h2 class="text-xl font-bold text-white flex items-center gap-2">
+            <i class="fa-solid fa-cubes text-emerald-400"></i> Consolidated Enterprise Overview
+          </h2>
+          <p class="text-xs text-slate-400">Regional, Area, and Branch-wise consolidated HR Analytics reacting dynamically to your geographical filters.</p>
+        </div>
+        <div class="flex items-center gap-2">
+          <button id="unhide-all-btn" onclick="restoreAllHiddenItems()" class="text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-200 px-3 py-1.5 rounded-lg border border-slate-700 flex items-center gap-1.5 transition">
+            <i class="fa-solid fa-eye"></i> Show Hidden (<span id="hidden-count-badge">0</span>)
+          </button>
+        </div>
+      </div>
+
+      <!-- Section KPI Cards Grid: Compact Layout fitting 5-6 cards per row -->
+      <div class="mb-2.5 flex items-center justify-between">
+        <span class="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+          <i class="fa-solid fa-bolt text-blue-400"></i> Key Performance Indicators 
+          <span class="text-[11px] font-normal text-slate-500 capitalize">(Double-click any card to view detailed drill-down table)</span>
+        </span>
+      </div>
+      <div id="kpi-cards-grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 xl:grid-cols-6 gap-3.5 mb-6">
+        <!-- Dynamically Created Modern Dark KPI Cards (Fitting 5 to 6 in a line) -->
+      </div>
+
+      <!-- Section Charts Grid -->
+      <div id="charts-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 mb-8">
+        <!-- Dynamically Created Charts appear here -->
+      </div>
+
+      <!-- KPI DRILL DOWN DETAIL TABLE CONTAINER -->
+      <div id="kpi-drilldown-container" class="bg-slate-950 rounded-xl shadow-2xl border-2 border-indigo-500/50 p-5 hidden mb-8">
+        <div class="flex flex-wrap items-center justify-between pb-3 border-b border-slate-800 gap-3 mb-3">
+          <div class="flex items-center gap-2.5">
+            <span class="w-8 h-8 rounded-lg bg-indigo-900/60 text-indigo-400 flex items-center justify-center font-bold">
+              <i class="fa-solid fa-table-list"></i>
+            </span>
+            <div>
+              <h3 id="drilldown-title" class="text-sm font-bold text-white">KPI Detailed Drill-Down Records</h3>
+              <p id="drilldown-subtitle" class="text-xs text-slate-400">Showing underlying raw records extracted specifically for this KPI.</p>
+            </div>
+          </div>
+          
+          <div class="flex items-center gap-2">
+            <span id="drilldown-count-badge" class="text-xs bg-indigo-950 text-indigo-300 border border-indigo-700 px-2.5 py-1 rounded font-bold font-mono">0 Records</span>
+            <button onclick="exportDrilldownToExcel()" class="bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1 rounded text-xs font-semibold flex items-center gap-1.5 shadow-sm transition">
+              <i class="fa-solid fa-file-excel"></i> Export Table
+            </button>
+            <button onclick="closeDrilldown()" class="text-slate-400 hover:text-white px-2 py-1 text-base">&times;</button>
+          </div>
+        </div>
+
+        <div class="overflow-x-auto max-h-96 text-xs custom-scrollbar">
+          <table class="min-w-full divide-y divide-slate-800">
+            <thead class="bg-slate-900 sticky top-0" id="drilldown-head"></thead>
+            <tbody class="divide-y divide-slate-800/60 bg-slate-950 font-medium text-slate-300" id="drilldown-body"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Raw Data Table View for Selected Section -->
+      <div id="data-table-container" class="bg-slate-950 rounded-xl shadow-sm border border-slate-800 p-5 hidden">
+        <div class="flex items-center justify-between mb-4">
+          <div>
+            <h3 class="text-sm font-bold text-white">Raw Data View (Current Section)</h3>
+            <p class="text-xs text-slate-400">Viewing active data rows for verification and auditing.</p>
+          </div>
+          <div class="flex items-center gap-3">
+            <select id="table-sheet-picker" onchange="renderRawTable()" class="border border-slate-700 rounded px-2 py-1 text-xs bg-slate-900 text-slate-200 font-medium">
+              <option value="1">Sub-Sheet Slot 1</option>
+              <option value="2">Sub-Sheet Slot 2</option>
+              <option value="3">Sub-Sheet Slot 3</option>
+            </select>
+            <span id="row-count-badge" class="text-xs bg-slate-900 text-slate-300 px-2.5 py-1 rounded font-mono font-bold border border-slate-700">0 Rows</span>
+          </div>
+        </div>
+        <div class="overflow-x-auto max-h-96 text-xs custom-scrollbar">
+          <table class="min-w-full divide-y divide-slate-800">
+            <thead class="bg-slate-900 sticky top-0 text-slate-300" id="table-head"></thead>
+            <tbody class="divide-y divide-slate-800 bg-slate-950 font-medium text-slate-400" id="table-body"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Footer Signature -->
+      <footer class="mt-12 py-4 border-t border-slate-800/70 text-center text-xs text-slate-500">
+        <p>Developed and Design by <span class="text-emerald-400 font-bold">Sabir Kazi</span>, HR professional &amp; AI Specialist</p>
+      </footer>
+
+    </div>
+  </main>
+
+  <!-- ================= MODAL 1: ADD / EDIT KPI CARD ================= -->
+  <div id="kpi-modal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center hidden">
+    <div class="bg-slate-950 rounded-xl shadow-2xl w-full max-w-lg p-6 border border-slate-800 text-slate-200">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-800 mb-4">
+        <h3 id="kpi-modal-title" class="text-base font-bold text-white flex items-center gap-2">
+          <i class="fa-solid fa-square-poll-vertical text-emerald-400"></i> Configure Custom KPI Card
+        </h3>
+        <button onclick="closeKpiModal()" class="text-slate-400 hover:text-white text-lg">&times;</button>
+      </div>
+
+      <input type="hidden" id="editing-kpi-id" value="">
+      <input type="hidden" id="editing-kpi-section" value="">
+
+      <div class="space-y-3.5 text-xs font-medium text-slate-300">
+        <div>
+          <label class="block mb-1 font-semibold text-slate-400">KPI Title</label>
+          <input type="text" id="kpi-title" placeholder="e.g. Total Active Headcount" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-emerald-500 focus:outline-none text-white">
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block mb-1 font-semibold text-slate-400">Select Sub-Sheet Slot</label>
+            <select id="kpi-sheet-slot" onchange="populateKpiColumnSelectors()" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-2 text-xs focus:ring-1 focus:ring-emerald-500 focus:outline-none text-white">
+              <option value="1">Sub-Sheet Slot 1</option>
+              <option value="2">Sub-Sheet Slot 2</option>
+              <option value="3">Sub-Sheet Slot 3</option>
+            </select>
+          </div>
+          <div>
+            <label class="block mb-1 font-semibold text-slate-400">Target Column</label>
+            <select id="kpi-column" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-2 text-xs focus:ring-1 focus:ring-emerald-500 focus:outline-none text-white">
+              <option value="">Select Column</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block mb-1 font-semibold text-slate-400">Calculation Method</label>
+            <select id="kpi-calc" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-2 text-xs focus:ring-1 focus:ring-emerald-500 focus:outline-none text-white">
+              <option value="count">Count Total Rows</option>
+              <option value="sum">Sum of Values</option>
+              <option value="average">Average Value</option>
+              <option value="latest">Latest Entry Value</option>
+            </select>
+          </div>
+          <div>
+            <label class="block mb-1 font-semibold text-slate-400">Display Format</label>
+            <select id="kpi-format" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-2 text-xs focus:ring-1 focus:ring-emerald-500 focus:outline-none text-white">
+              <option value="number">Real Number (e.g. 2,673)</option>
+              <option value="percentage">Percentage (%)</option>
+              <option value="currency">Currency ($)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block mb-1 font-semibold text-slate-400">Subtitle / Note</label>
+            <input type="text" id="kpi-subtitle" placeholder="e.g. Active Staff Strength" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-emerald-500 focus:outline-none text-white">
+          </div>
+          <div>
+            <label class="block mb-1 font-semibold text-slate-400">Card Theme Accent</label>
+            <select id="kpi-theme" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-2 text-xs focus:ring-1 focus:ring-emerald-500 focus:outline-none text-white">
+              <option value="blue">Neon Blue</option>
+              <option value="cyan">Cyan (Male)</option>
+              <option value="pink">Pink (Female)</option>
+              <option value="purple">Vibrant Purple</option>
+              <option value="amber">Warm Amber</option>
+              <option value="rose">Soft Crimson</option>
+              <option value="emerald">Emerald Green</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex items-center justify-end gap-2 mt-6 pt-3 border-t border-slate-800">
+        <button onclick="closeKpiModal()" class="px-4 py-2 rounded-lg text-slate-400 hover:bg-slate-900 text-xs font-semibold">Cancel</button>
+        <button onclick="saveKpiCard()" id="kpi-save-btn" class="bg-emerald-600 hover:bg-emerald-500 text-white px-5 py-2 rounded-lg text-xs font-bold shadow transition">Save KPI Card</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= MODAL 2: ADD / EDIT CUSTOM CHART WITH TOP N FILTER ================= -->
+  <div id="chart-modal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center hidden">
+    <div class="bg-slate-950 rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto p-6 border border-slate-800 custom-scrollbar text-slate-200">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-800 mb-4">
+        <h3 id="chart-modal-title" class="text-base font-bold text-white flex items-center gap-2">
+          <i class="fa-solid fa-chart-pie text-indigo-400"></i> Configure & Create Chart
+        </h3>
+        <button onclick="closeChartModal()" class="text-slate-400 hover:text-white text-lg">&times;</button>
+      </div>
+
+      <input type="hidden" id="editing-chart-id" value="">
+      <input type="hidden" id="editing-chart-section" value="">
+
+      <div class="space-y-4 text-xs font-medium text-slate-300">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block mb-1 font-semibold text-slate-400">Chart Title</label>
+            <input type="text" id="modal-chart-title" placeholder="e.g. Department-wise Headcount" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-indigo-500 focus:outline-none text-white">
+          </div>
+          <div>
+            <label class="block mb-1 font-semibold text-slate-400">Sub-Sheet Slot</label>
+            <select id="modal-chart-slot" onchange="populateModalAxisSelectors()" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-indigo-500 focus:outline-none text-white">
+              <option value="1">Sub-Sheet Slot 1</option>
+              <option value="2">Sub-Sheet Slot 2</option>
+              <option value="3">Sub-Sheet Slot 3</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
+          <div>
+            <label class="block mb-1 font-semibold text-slate-400">Chart Type</label>
+            <select id="modal-chart-type" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-2 text-xs focus:ring-1 focus:ring-indigo-500 focus:outline-none text-white">
+              <option value="bar">Bar (Vertical)</option>
+              <option value="horizontalBar">Horizontal Bar</option>
+              <option value="stackedBar">Stacked Bar</option>
+              <option value="line">Line / Trend</option>
+              <option value="area">Area Chart</option>
+              <option value="doughnut">Doughnut</option>
+              <option value="pie">Pie Chart</option>
+            </select>
+          </div>
+
+          <!-- TOP N FILTER DROPDOWN -->
+          <div>
+            <label class="block mb-1 font-semibold text-amber-400"><i class="fa-solid fa-ranking-star mr-1"></i>Top N Filter</label>
+            <select id="modal-chart-topn" class="w-full bg-slate-900 border border-amber-600/70 rounded-lg px-2.5 py-2 text-xs focus:ring-1 focus:ring-amber-500 focus:outline-none text-amber-200 font-bold">
+              <option value="all">Show All</option>
+              <option value="3">Top 3 Only</option>
+              <option value="5">Top 5 Only</option>
+              <option value="10">Top 10 Only</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block mb-1 font-semibold text-slate-400">Width</label>
+            <select id="modal-chart-width" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-2 text-xs focus:ring-1 focus:ring-indigo-500 focus:outline-none text-white">
+              <option value="col-span-1">1 Col (1/3)</option>
+              <option value="col-span-1 md:col-span-2">Wide (2/3)</option>
+              <option value="col-span-1 md:col-span-2 lg:col-span-3">Full (3/3)</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block mb-1 font-semibold text-slate-400">Height</label>
+            <select id="modal-chart-height" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-2 text-xs focus:ring-1 focus:ring-indigo-500 focus:outline-none text-white">
+              <option value="h-56">Compact (224px)</option>
+              <option value="h-72" selected>Standard (288px)</option>
+              <option value="h-96">Tall (384px)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block mb-1 font-semibold text-slate-400">X-Axis (Category / Dimension)</label>
+            <select id="modal-chart-xaxis" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-indigo-500 focus:outline-none text-white">
+              <option value="">Select Column</option>
+            </select>
+          </div>
+          <div>
+            <label class="block mb-1 font-semibold text-slate-400">Y-Axis (Metrics / Value)</label>
+            <select id="modal-chart-yaxis" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-indigo-500 focus:outline-none text-white">
+              <option value="">Select Column</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div>
+            <label class="block mb-1 font-semibold text-slate-400">Aggregation</label>
+            <select id="modal-chart-agg" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-indigo-500 focus:outline-none text-white">
+              <option value="sum">Sum</option>
+              <option value="count">Count Rows</option>
+              <option value="average">Average</option>
+            </select>
+          </div>
+          <div>
+            <label class="block mb-1 font-semibold text-slate-400">Data Format</label>
+            <select id="modal-chart-format" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-indigo-500 focus:outline-none text-white">
+              <option value="number">Real Number</option>
+              <option value="percentage">Percentage (%)</option>
+              <option value="currency">Currency ($)</option>
+            </select>
+          </div>
+          <div>
+            <label class="block mb-1 font-semibold text-slate-400">Data Labels</label>
+            <select id="modal-chart-datalabels" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-indigo-500 focus:outline-none text-white">
+              <option value="show">Show Labels</option>
+              <option value="hide">Hide Labels</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="bg-slate-900 p-3.5 rounded-lg border border-slate-800">
+          <label class="block mb-2 font-semibold text-slate-300"><i class="fa-solid fa-palette text-indigo-400 mr-1"></i> Gradient Colors</label>
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <span class="text-slate-400 block mb-1">Color 1 (Start):</span>
+              <input type="color" id="modal-color-start" value="#3b82f6" class="w-full h-8 rounded cursor-pointer border border-slate-700 bg-slate-800">
+            </div>
+            <div>
+              <span class="text-slate-400 block mb-1">Color 2 (End):</span>
+              <input type="color" id="modal-color-end" value="#93c5fd" class="w-full h-8 rounded cursor-pointer border border-slate-700 bg-slate-800">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex items-center justify-end gap-2 mt-6 pt-3 border-t border-slate-800">
+        <button onclick="closeChartModal()" class="px-4 py-2 rounded-lg text-slate-400 hover:bg-slate-900 text-xs font-semibold">Cancel</button>
+        <button onclick="saveAndBuildChart()" id="chart-save-btn" class="bg-indigo-600 hover:bg-indigo-500 text-white px-5 py-2 rounded-lg text-xs font-bold shadow transition">Save Chart</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= LOGIC ENGINE ================= -->
+  <script>
+    Chart.register(ChartDataLabels);
+
+    let currentSection = 'overview';
+    let currentDrilldownRows = [];
+    let hiddenOverviewItems = new Set();
+
+    // 1. EMBEDDED HIERARCHY MASTER FROM 'Updated Area and Region.xlsx'
+    let regionHierarchy = {
+      "HEAD OFFICE": { "Head Office Units": ["Head Office Karachi", "Central Units"] },
+      "Karachi Region": {
+        "Karachi Area 1": ["Gulshan Branch", "Saddar Branch", "Orangi Branch", "Agraa Taaj (Karachi) Service Centre", "DHA Karachi Branch", "Lasbela Service Centre", "North Karachi Service Centre", "Baldia Service Centre"],
+        "Karachi Area 2": ["Mehmoodabad Branch", "Korangi Branch", "Malir Branch", "Thatta Branch", "Gulshan-E- Hadeed Service Centre", "Sujawal Service Centre", "Gharo Service Centre", "Shah Faisal (Karachi) Service Centre", "North Karachi Branch", "Qasimabad Branch"]
+      },
+      "Hyderabad Region": {
+        "Hyderabad Area": ["Latifabad Branch", "Mirpurkhas Branch", "Tando Muhammad Khan Branch", "Badin Branch", "Umerkot Branch", "Matiari Service Centre", "Tando Allahyar Service Centre", "Kunri Service Centre", "Tando Jam Service Centre", "Kot Ghulam Muhammad Service Centre", "Qasimabad Service Centre", "Mithi Branch", "Digri Service Centre"],
+        "Nawabshah Area": ["Nawabshah Branch", "Shahdadpur Branch", "Sakrand Service Centre", "Sanghar Service Centre", "Tando Adam Service Centre", "Hala Service Centre"]
+      },
+      "Sukkur Region": {
+        "Larkana Area": ["Larkana Branch", "Shikarpur Branch", "Dadu Branch", "Sehwan Sharif Service Centre", "Mehar Service Centre", "Shahdad Kot Service Centre", "Dokri Service Centre", "Qambar Service Centre", "Nau Dero Service Centre"],
+        "Sukkur Area": ["Sukkur Branch", "Ghotki Branch", "Khairpur Branch", "Naushero Feroze Branch", "Daherki Service Centre", "Ranipur Service Centre", "Moro Service Centre", "Pano Aqilservice Centre", "Mehrabpur Service Centre", "Rohri (Sind) Service Centre", "Kandiaro Service Centre"]
+      },
+      "Islamabad Region": {
+        "Kpk Area": ["Abbottabad Branch", "Haripur Service Centre", "Mansehra Service Centre", "Mardan Branch", "Bala Kot Service Centre", "Rawla Kot Branch", "Bagh Branch", "Peshawar Branch"],
+        "Rawalpindi Area": ["Rawalpindi Branch", "Rawalpindi Service Centre", "Gujar Khan Service Centre", "Attock Branch", "Fateh Jang Service Centre", "Islamabad Branch", "Jhelum Branch", "RAWAT SERVICE CENTRE", "Chakwal Branch", "Talagang Service Centre", "Barakahu Service Centre", "Wah Cantt Service Centre"]
+      },
+      "Lahore Region": {
+        "Gujranwala Area": ["Gujrat Branch", "Jalalpur Jattan Service Centre", "Lala Musa Service Centre", "Dinga Service Centre", "Daska Service Centre", "Sambrial Service Centre", "Gujranwala Branch", "Kamoki Service Centre", "Wazirabad Service Centre", "Hafizabad Service Centre", "Ghakkar Service Centre", "Malakwal", "Phaliya Service Centre", "Mandi Bahauddin Branch"],
+        "Lahore Area": ["Lahore Branch", "Kasur Branch", "Raiwind Service Centre", "Kot Radha Kishan Service Centre", "Manga Mandi Service Centre", "Khuddian Service Centre", "Sheikhupura Branch", "Ellahbad Service Centre", "Mustfa Abad Laliani Service Centre", "Sangla Hill Service Centre", "Sharaqpur Service Centre"],
+        "Lahore Area Il": ["Sialkot Branch", "Lahore Service Centre", "DHA Lahore Branch", "Pasroor Service Centre", "Narowal Branch", "Zafarwal", "Muridky", "Ferozpur Road", "Qainchi - Lhr Service Centre", "Kot Abdul Malik Service Centre", "Batapur Service Centre Lahore", "Chowk Yateem Khana Service Centre"]
+      },
+      "Sahiwal Region": {
+        "Faisalabad Area": ["Faisalabad Branch", "Ghulam M Abad Service Centre", "Sumandari Sc Service Centre", "SATIYANA ROAD SERVICE CENTRE", "Jaranwala Service Centre", "Nankana Sahib Branch", "Tandlian Wala Service Centre", "Millat Chowk Service Centre"],
+        "Pakpattan Area": ["Pakpattan Branch", "Arifwala Service Centre", "Bahawalnagar Branch", "Haroonabad Service Centre", "Minchanabad Service Centre", "Fortabas Service Centre", "Qaboola Service Centre", "Donga Bonga Service Centre", "Faqirwali Service Centre", "Marot Service Centre", "Bonga Hayat Service Centre", "Malka Hans Service Centre"],
+        "Sahiwal Area": ["Mian Channu Service Centre", "Okara Branch", "Depalpur Service Centre", "Sahiwal Branch", "Haveli Lakha Service Centre", "Renala Service Centre", "Chichawatni Service Centre", "Chunnia Service Centre", "Pattoki Service Centre", "Hujra Shah Muqeem Service Centre", "Baseerpur Service Centre"],
+        "Sargodha Area": ["Joharabad Branch", "Mianwali Branch", "Sargodha Branch", "Bhalwal Service Centre", "Sahiwal Service Centre", "Shahpur Service Centre", "Silanwali Service Centre", "Quaidabad Service Centre", "Piplan Service Centre"]
+      },
+      "Multan Region": {
+        "Jhang Area": ["Jhang Branch", "Shorkot Service Centre", "Chiniot Branch", "18 Hazari", "Pindi Bhattian Service Centre", "Toba Tek Singh Branch", "Gojra Service Centre", "Pir Mahal Service Centre", "Ahmedpur Sial Service Centre", "Kamaliya Service Centre"],
+        "Vehari Area": ["Khanewal Branch", "Jahania Service Centre", "Abdul Hakim Service Centre", "Kabeerwala Service Centre", "Vehari Branch", "Chishtian Service Centre", "Burewala Service Centre", "Daranwala Service Centre", "Mailsi Service Centre", "Karmpur Service Centre", "Hasilpur Service Centre"],
+        "Multan Area": ["Multan Branch", "Muzaffargarh Branch", "Kot Addu Service Centre", "Rohillan Wali Service Centre", "Multan Service Centre", "Basti Malook Service Centre", "Multan Service Centre Ii", "Shujabad Service Centre", "Alipur Service Centre"]
+      },
+      "Rahim Yar Khan Region": {
+        "Bahawalpur Area": ["Bahawalpur Branch", "Yazman Service Centre", "Ahmedpur East Service Centre", "Dunyapur Service Centre", "Lodhran Branch", "Kehror Pacca Service Centre", "Had Rajgan Service Centre", "Khairpur Tamewali Service Centre"],
+        "Layyah Area": ["Layyah Branch", "Dera Ghazi Khan Branch", "Chowk Azam Service Centre", "Taunsa Service Centre", "Jampur Service Centre", "Kot Chutta Service Centre", "Sanawaan Service Centre", "Chowk Sarwar Service Centre", "Kot Sultan Service Centre", "Bhakkar Branch", "Darya Khan Service Centre"],
+        "Rahim Yar Khan": ["Rajanpur Branch", "Fazalpur Service Centre", "Kotmithan Service Centre", "Rahim Yaar Khan Branch", "Sadiqabad Service Centre", "Khanpur Service Centre", "Liaqatpur Service Centre", "Jamal Din Wali Service Centre", "Kot Samaba Service Centre", "Zahir Peer Service Centre"]
+      }
+    };
+
+    function initRegionDropdown() {
+      const regSelect = document.getElementById('filter-region');
+      regSelect.innerHTML = '<option value="All" class="bg-slate-900">All Regions</option>';
+      Object.keys(regionHierarchy).forEach(reg => {
+        regSelect.innerHTML += `<option value="${reg}" class="bg-slate-900">${reg}</option>`;
+      });
+      onRegionChange();
+    }
+
+    function onRegionChange() {
+      const selectedReg = document.getElementById('filter-region').value;
+      const areaSelect = document.getElementById('filter-area');
+      areaSelect.innerHTML = '<option value="All" class="bg-slate-900">All Areas</option>';
+
+      if (selectedReg !== 'All' && regionHierarchy[selectedReg]) {
+        Object.keys(regionHierarchy[selectedReg]).forEach(area => {
+          areaSelect.innerHTML += `<option value="${area}" class="bg-slate-900">${area}</option>`;
+        });
+      }
+      onAreaChange();
+    }
+
+    function onAreaChange() {
+      const selectedReg = document.getElementById('filter-region').value;
+      const selectedArea = document.getElementById('filter-area').value;
+      const branchSelect = document.getElementById('filter-branch');
+      branchSelect.innerHTML = '<option value="All" class="bg-slate-900">All Branches</option>';
+
+      if (selectedReg !== 'All' && regionHierarchy[selectedReg]) {
+        if (selectedArea !== 'All' && regionHierarchy[selectedReg][selectedArea]) {
+          regionHierarchy[selectedReg][selectedArea].forEach(br => {
+            branchSelect.innerHTML += `<option value="${br}" class="bg-slate-900">${br}</option>`;
+          });
+        } else {
+          Object.values(regionHierarchy[selectedReg]).forEach(brList => {
+            brList.forEach(br => {
+              branchSelect.innerHTML += `<option value="${br}" class="bg-slate-900">${br}</option>`;
+            });
+          });
+        }
+      }
+      triggerFilterUpdate();
+    }
+
+    // Section Stores
+    const sectionStores = {};
+    const availableSections = ['overview', 'employee-details', 'employee-separation', 'performance', 'recruitment', 'training', 'attrition', 'reports'];
+    
+    availableSections.forEach(sec => {
+      sectionStores[sec] = {
+        fileName: '',
+        workbook: {},
+        slot1: '',
+        slot2: '',
+        slot3: '',
+        kpis: [],
+        charts: []
+      };
+    });
+
+    let chartInstances = {};
+
+    function switchTab(sectionId) {
+      currentSection = sectionId;
+      document.querySelectorAll('.nav-btn').forEach(btn => {
+        if(btn.dataset.tab === sectionId) {
+          btn.classList.add('bg-emerald-600', 'text-white', 'shadow-sm');
+          btn.classList.remove('hover:bg-slate-900', 'text-slate-300');
+        } else {
+          btn.classList.remove('bg-emerald-600', 'text-white', 'shadow-sm');
+          btn.classList.add('hover:bg-slate-900', 'text-slate-300');
+        }
+      });
+
+      const controlsBar = document.getElementById('section-controls-bar');
+      const overviewHeader = document.getElementById('overview-header');
+
+      if (sectionId === 'overview') {
+        controlsBar.classList.add('hidden');
+        overviewHeader.classList.remove('hidden');
+        updateHiddenBadge();
+      } else {
+        controlsBar.classList.remove('hidden');
+        overviewHeader.classList.add('hidden');
+        document.getElementById('view-title').textContent = sectionId.replace('-', ' ') + ' Section';
+      }
+
+      closeDrilldown();
+      refreshSectionHeader();
+      renderCurrentSectionKpis();
+      renderCurrentSectionCharts();
+
+      const tableContainer = document.getElementById('data-table-container');
+      if (sectionId === 'reports') {
+        tableContainer.classList.remove('hidden');
+        renderRawTable();
+      } else {
+        tableContainer.classList.add('hidden');
+      }
+    }
+
+    function handleSectionUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const data = new Uint8Array(e.target.result);
+        const workbook = XLSX.read(data, { type: 'array', cellDates: true });
+
+        const currentStore = sectionStores[currentSection];
+        currentStore.fileName = file.name;
+        currentStore.workbook = {};
+
+        workbook.SheetNames.forEach(sName => {
+          const sheet = workbook.Sheets[sName];
+          currentStore.workbook[sName] = XLSX.utils.sheet_to_json(sheet, { defval: "" });
+        });
+
+        const names = workbook.SheetNames;
+        currentStore.slot1 = names[0] || '';
+        currentStore.slot2 = names[1] || names[0] || '';
+        currentStore.slot3 = names[2] || names[0] || '';
+
+        // Auto Generate for Attrition Section (Cleaned: No Voluntary/Involuntary)
+        if (currentSection === 'attrition') {
+          autoGenerateAttritionTemplate();
+        }
+
+        // Auto Generate for Employee Details Section (Real Numbers, No K/M)
+        if (currentSection === 'employee-details') {
+          autoGenerateEmployeeDetailsTemplate();
+        }
+
+        refreshSectionHeader();
+        renderCurrentSectionKpis();
+        renderCurrentSectionCharts();
+        renderRawTable();
+      };
+      reader.readAsArrayBuffer(file);
+    }
+
+    // UPDATED ATTRITION TEMPLATE: Voluntary / Involuntary Removed, Regrettable Focused
+    function autoGenerateAttritionTemplate() {
+      const store = sectionStores['attrition'];
+      const slot1Data = getSheetDataBySlot(1, 'attrition');
+      if (slot1Data.length === 0) return;
+
+      const cols = Object.keys(slot1Data[0]);
+      const findCol = (regex) => cols.find(c => regex.test(c)) || cols[0];
+
+      const empIdCol = findCol(/id|emp|code/i);
+      const reasonCol = findCol(/reason|cause/i);
+      const regretCol = findCol(/regret/i);
+      const deptCol = findCol(/dept|department/i);
+      const locCol = findCol(/loc|location|branch|office|region/i);
+      const dateCol = findCol(/date|exit|resignation/i);
+
+      store.kpis = [
+        {
+          id: 'kpi_total_exits',
+          sectionOrigin: 'attrition',
+          title: 'Total Exits / Left',
+          slot: '1',
+          col: empIdCol,
+          calc: 'count',
+          format: 'number',
+          subtitle: 'Separated employees',
+          theme: 'blue',
+          customFilter: null
+        },
+        {
+          id: 'kpi_regret_exits',
+          sectionOrigin: 'attrition',
+          title: 'Regrettable Exits',
+          slot: '1',
+          col: regretCol,
+          calc: 'regret_count',
+          format: 'number',
+          subtitle: 'High-value talent loss',
+          theme: 'purple',
+          customFilter: 'regrettable'
+        },
+        {
+          id: 'kpi_non_regret_exits',
+          sectionOrigin: 'attrition',
+          title: 'Non-Regrettable Exits',
+          slot: '1',
+          col: regretCol,
+          calc: 'non_regret_count',
+          format: 'number',
+          subtitle: 'Standard separations',
+          theme: 'cyan',
+          customFilter: 'non_regrettable'
+        }
+      ];
+
+      store.charts = [
+        { id: 'chart_attr_trend', sectionOrigin: 'attrition', title: 'Attrition Rate Trend', slot: '1', type: 'line', topN: 'all', widthClass: 'col-span-1 md:col-span-2', heightClass: 'h-72', xAxis: dateCol, yAxis: empIdCol, agg: 'count', format: 'number', datalabels: 'show', colorStart: '#ef4444', colorEnd: '#f87171' },
+        { id: 'chart_attr_reasons', sectionOrigin: 'attrition', title: 'Top Reasons for Leaving', slot: '1', type: 'horizontalBar', topN: '5', widthClass: 'col-span-1', heightClass: 'h-72', xAxis: reasonCol, yAxis: empIdCol, agg: 'count', format: 'number', datalabels: 'show', colorStart: '#f59e0b', colorEnd: '#fbbf24' },
+        { id: 'chart_attr_dept', sectionOrigin: 'attrition', title: 'Department-wise Attrition', slot: '1', type: 'bar', topN: '5', widthClass: 'col-span-1 md:col-span-2', heightClass: 'h-72', xAxis: deptCol, yAxis: empIdCol, agg: 'count', format: 'number', datalabels: 'show', colorStart: '#3b82f6', colorEnd: '#60a5fa' },
+        { id: 'chart_attr_loc', sectionOrigin: 'attrition', title: 'Location / Region Exits', slot: '1', type: 'doughnut', topN: '5', widthClass: 'col-span-1', heightClass: 'h-72', xAxis: locCol, yAxis: empIdCol, agg: 'count', format: 'number', datalabels: 'show', colorStart: '#10b981', colorEnd: '#34d399' }
+      ];
+    }
+
+    // UPDATED EMPLOYEE DETAILS: Pure Number Headcount (No 2.7K, Shows 2673)
+    function autoGenerateEmployeeDetailsTemplate() {
+      const store = sectionStores['employee-details'];
+      const slot1Data = getSheetDataBySlot(1, 'employee-details');
+      if (slot1Data.length === 0) return;
+
+      const cols = Object.keys(slot1Data[0]);
+      const findCol = (regex) => cols.find(c => regex.test(c)) || cols[0];
+
+      const empIdCol = findCol(/id|emp|code/i);
+      const genderCol = findCol(/gender|sex/i);
+      const deptCol = findCol(/dept|department/i);
+
+      store.kpis = [
+        {
+          id: 'kpi_total_headcount',
+          sectionOrigin: 'employee-details',
+          title: 'Total Active Headcount',
+          slot: '1',
+          col: empIdCol,
+          calc: 'count',
+          format: 'number',
+          subtitle: 'Active Staff Strength',
+          theme: 'blue',
+          customFilter: null
+        },
+        {
+          id: 'kpi_male_employees',
+          sectionOrigin: 'employee-details',
+          title: 'Male Employees',
+          slot: '1',
+          col: genderCol,
+          calc: 'male_count',
+          format: 'number',
+          subtitle: 'Male Workforce',
+          theme: 'cyan',
+          customFilter: 'male',
+          icon: 'fa-mars'
+        },
+        {
+          id: 'kpi_female_employees',
+          sectionOrigin: 'employee-details',
+          title: 'Female Employees',
+          slot: '1',
+          col: genderCol,
+          calc: 'female_count',
+          format: 'number',
+          subtitle: 'Female Workforce',
+          theme: 'pink',
+          customFilter: 'female',
+          icon: 'fa-venus'
+        }
+      ];
+
+      store.charts = [
+        { id: 'chart_gender_ratio', sectionOrigin: 'employee-details', title: 'Gender Diversity Ratio', slot: '1', type: 'doughnut', topN: 'all', widthClass: 'col-span-1', heightClass: 'h-72', xAxis: genderCol, yAxis: empIdCol, agg: 'count', format: 'number', datalabels: 'show', colorStart: '#06b6d4', colorEnd: '#ec4899' },
+        { id: 'chart_emp_dept', sectionOrigin: 'employee-details', title: 'Department-wise Headcount', slot: '1', type: 'bar', topN: '5', widthClass: 'col-span-1 md:col-span-2', heightClass: 'h-72', xAxis: deptCol, yAxis: empIdCol, agg: 'count', format: 'number', datalabels: 'show', colorStart: '#3b82f6', colorEnd: '#60a5fa' }
+      ];
+    }
+
+    function refreshSectionHeader() {
+      if (currentSection === 'overview') return;
+      const store = sectionStores[currentSection];
+      const badge = document.getElementById('file-status-badge');
+      const s1 = document.getElementById('subsheet-slot-1');
+      const s2 = document.getElementById('subsheet-slot-2');
+      const s3 = document.getElementById('subsheet-slot-3');
+
+      if (!store.fileName) {
+        badge.textContent = 'No file uploaded for this section';
+        badge.className = 'text-[11px] font-medium text-amber-400 bg-amber-950/40 px-2.5 py-0.5 rounded-full border border-amber-800 inline-block mt-0.5';
+        [s1, s2, s3].forEach(s => s.innerHTML = '<option value="">None</option>');
+        return;
+      }
+
+      badge.textContent = `File: ${store.fileName}`;
+      badge.className = 'text-[11px] font-medium text-emerald-400 bg-emerald-950/50 px-2.5 py-0.5 rounded-full border border-emerald-800 inline-block mt-0.5';
+
+      const sheetNames = Object.keys(store.workbook);
+      [s1, s2, s3].forEach((s, idx) => {
+        s.innerHTML = '';
+        sheetNames.forEach(name => {
+          const opt = document.createElement('option');
+          opt.value = name;
+          opt.textContent = name;
+          s.appendChild(opt);
+        });
+        if (idx === 0) s.value = store.slot1;
+        if (idx === 1) s.value = store.slot2;
+        if (idx === 2) s.value = store.slot3;
+      });
+    }
+
+    function updateSubSheetSlot(slotNum) {
+      const store = sectionStores[currentSection];
+      const selected = document.getElementById(`subsheet-slot-${slotNum}`).value;
+      if (slotNum === 1) store.slot1 = selected;
+      if (slotNum === 2) store.slot2 = selected;
+      if (slotNum === 3) store.slot3 = selected;
+
+      renderCurrentSectionKpis();
+      renderCurrentSectionCharts();
+      renderRawTable();
+    }
+
+    function getSheetDataBySlot(slotNum, specificSection = null) {
+      const targetSec = specificSection || currentSection;
+      const store = sectionStores[targetSec];
+      if (!store) return [];
+      const sheetName = slotNum == 1 ? store.slot1 : (slotNum == 2 ? store.slot2 : store.slot3);
+      return store.workbook[sheetName] || [];
+    }
+
+    function parseDateInfo(val) {
+      if (!val) return null;
+      let d = null;
+      if (val instanceof Date && !isNaN(val)) {
+        d = val;
+      } else if (typeof val === 'number') {
+        d = new Date((val - (25567 + 2)) * 86400 * 1000);
+      } else {
+        const s = String(val).trim();
+        const dmy = s.match(/^(\d{1,2})[-/](\d{1,2})[-/](\d{4})/);
+        if (dmy) {
+          d = new Date(parseInt(dmy[3]), parseInt(dmy[2]) - 1, parseInt(dmy[1]));
+        } else {
+          const parsed = Date.parse(s);
+          if (!isNaN(parsed)) d = new Date(parsed);
+        }
+      }
+      if (d && !isNaN(d.getTime())) {
+        return { year: d.getFullYear(), month: d.getMonth() + 1 };
+      }
+      return null;
+    }
+
+    function triggerFilterUpdate() {
+      closeDrilldown();
+      renderCurrentSectionKpis();
+      renderCurrentSectionCharts();
+      renderRawTable();
+    }
+
+    function resetGlobalFilters() {
+      document.getElementById('filter-year').value = 'All';
+      document.getElementById('filter-month').value = 'All';
+      document.getElementById('filter-region').value = 'All';
+      onRegionChange();
+      document.getElementById('filter-department').value = 'All';
+      triggerFilterUpdate();
+    }
+
+    function applyFiltersToDataset(rows) {
+      const year = document.getElementById('filter-year').value;
+      const month = document.getElementById('filter-month').value;
+      const region = document.getElementById('filter-region').value;
+      const area = document.getElementById('filter-area').value;
+      const branch = document.getElementById('filter-branch').value;
+      const dept = document.getElementById('filter-department').value;
+
+      return rows.filter(row => {
+        if (dept !== 'All') {
+          let rowDept = '';
+          for (let k of Object.keys(row)) {
+            if (/dept|department/i.test(k)) { rowDept = row[k]; break; }
+          }
+          if (String(rowDept).trim().toLowerCase() !== dept.toLowerCase()) return false;
+        }
+
+        const rowStr = Object.values(row).map(v => String(v).trim().toLowerCase()).join(' ');
+
+        if (branch !== 'All') {
+          let matched = false;
+          for (let k of Object.keys(row)) {
+            if (/branch|centre|office|location/i.test(k)) {
+              if (String(row[k]).trim().toLowerCase().includes(branch.toLowerCase())) {
+                matched = true;
+                break;
+              }
+            }
+          }
+          if (!matched && !rowStr.includes(branch.toLowerCase())) return false;
+        } else if (area !== 'All') {
+          let matched = false;
+          for (let k of Object.keys(row)) {
+            if (/area/i.test(k)) {
+              if (String(row[k]).trim().toLowerCase().includes(area.toLowerCase())) {
+                matched = true;
+                break;
+              }
+            }
+          }
+          if (!matched && region !== 'All' && regionHierarchy[region] && regionHierarchy[region][area]) {
+            const areaBranches = regionHierarchy[region][area];
+            matched = areaBranches.some(b => rowStr.includes(b.toLowerCase()));
+          }
+          if (!matched && !rowStr.includes(area.toLowerCase())) return false;
+        } else if (region !== 'All') {
+          let matched = false;
+          for (let k of Object.keys(row)) {
+            if (/region|location/i.test(k)) {
+              if (String(row[k]).trim().toLowerCase().includes(region.toLowerCase())) {
+                matched = true;
+                break;
+              }
+            }
+          }
+          if (!matched && regionHierarchy[region]) {
+            for (let ar in regionHierarchy[region]) {
+              if (regionHierarchy[region][ar].some(b => rowStr.includes(b.toLowerCase()))) {
+                matched = true;
+                break;
+              }
+            }
+          }
+          if (!matched && !rowStr.includes(region.toLowerCase())) return false;
+        }
+
+        if (year !== 'All' || month !== 'All') {
+          let dateParsed = null;
+          for (let k of Object.keys(row)) {
+            if (/date|joining|resignation|attendance|exit/i.test(k)) {
+              dateParsed = parseDateInfo(row[k]);
+              if (dateParsed) break;
+            }
+          }
+
+          if (dateParsed) {
+            if (year !== 'All' && dateParsed.year != parseInt(year)) return false;
+            if (month !== 'All' && dateParsed.month != parseInt(month)) return false;
+          } else {
+            if (year !== 'All') {
+              let hasYear = Object.values(row).some(v => String(v).includes(year));
+              if (!hasYear) return false;
+            }
+          }
+        }
+
+        return true;
+      });
+    }
+
+    // Modal & KPI Logic
+    function openKpiModal(kpiToEdit = null) {
+      const targetSec = kpiToEdit ? kpiToEdit.sectionOrigin : currentSection;
+      const store = sectionStores[targetSec];
+      if (!store.fileName) {
+        alert("Pehle is section ke liye Excel file upload karein.");
+        return;
+      }
+
+      const modalTitle = document.getElementById('kpi-modal-title');
+      const saveBtn = document.getElementById('kpi-save-btn');
+
+      if (kpiToEdit) {
+        modalTitle.innerHTML = '<i class="fa-solid fa-pen-to-square text-emerald-400"></i> Edit KPI Card';
+        saveBtn.textContent = 'Update KPI Card';
+        document.getElementById('editing-kpi-id').value = kpiToEdit.id;
+        document.getElementById('editing-kpi-section').value = targetSec;
+        document.getElementById('kpi-title').value = kpiToEdit.title;
+        document.getElementById('kpi-sheet-slot').value = kpiToEdit.slot;
+        populateKpiColumnSelectors(targetSec);
+        document.getElementById('kpi-column').value = kpiToEdit.col;
+        document.getElementById('kpi-calc').value = kpiToEdit.calc;
+        document.getElementById('kpi-format').value = kpiToEdit.format;
+        document.getElementById('kpi-subtitle').value = kpiToEdit.subtitle || '';
+        document.getElementById('kpi-theme').value = kpiToEdit.theme;
+      } else {
+        modalTitle.innerHTML = '<i class="fa-solid fa-square-poll-vertical text-emerald-400"></i> Configure Custom KPI Card';
+        saveBtn.textContent = 'Create KPI Card';
+        document.getElementById('editing-kpi-id').value = '';
+        document.getElementById('editing-kpi-section').value = currentSection;
+        document.getElementById('kpi-title').value = '';
+        document.getElementById('kpi-sheet-slot').value = '1';
+        populateKpiColumnSelectors(currentSection);
+        document.getElementById('kpi-calc').value = 'count';
+        document.getElementById('kpi-format').value = 'number';
+        document.getElementById('kpi-subtitle').value = '';
+        document.getElementById('kpi-theme').value = 'blue';
+      }
+
+      document.getElementById('kpi-modal').classList.remove('hidden');
+    }
+
+    function closeKpiModal() {
+      document.getElementById('kpi-modal').classList.add('hidden');
+    }
+
+    function populateKpiColumnSelectors(sec = null) {
+      const targetSec = sec || document.getElementById('editing-kpi-section').value || currentSection;
+      const slot = document.getElementById('kpi-sheet-slot').value;
+      const data = getSheetDataBySlot(slot, targetSec);
+      const colSelect = document.getElementById('kpi-column');
+      colSelect.innerHTML = '<option value="">Select Column</option>';
+      if (data.length > 0) {
+        Object.keys(data[0]).forEach(c => {
+          colSelect.innerHTML += `<option value="${c}">${c}</option>`;
+        });
+      }
+    }
+
+    function saveKpiCard() {
+      const editId = document.getElementById('editing-kpi-id').value;
+      const editSection = document.getElementById('editing-kpi-section').value || currentSection;
+      const title = document.getElementById('kpi-title').value.trim() || 'Metric KPI';
+      const slot = document.getElementById('kpi-sheet-slot').value;
+      const col = document.getElementById('kpi-column').value;
+      const calc = document.getElementById('kpi-calc').value;
+      const format = document.getElementById('kpi-format').value;
+      const subtitle = document.getElementById('kpi-subtitle').value.trim();
+      const theme = document.getElementById('kpi-theme').value;
+
+      if (!col && calc !== 'count') {
+        alert("Calculation ke liye column choose karein.");
+        return;
+      }
+
+      const store = sectionStores[editSection];
+
+      if (editId) {
+        const index = store.kpis.findIndex(k => k.id === editId);
+        if (index !== -1) {
+          store.kpis[index] = { ...store.kpis[index], title, slot, col, calc, format, subtitle, theme };
+        }
+      } else {
+        const kpiConfig = { id: 'kpi_' + Date.now(), sectionOrigin: currentSection, title, slot, col, calc, format, subtitle, theme, customFilter: null };
+        store.kpis.push(kpiConfig);
+      }
+
+      closeKpiModal();
+      renderCurrentSectionKpis();
+    }
+
+    function editKpi(kpiId, originSec) {
+      const store = sectionStores[originSec];
+      if (!store) return;
+      const kpi = store.kpis.find(k => k.id === kpiId);
+      if (kpi) {
+        kpi.sectionOrigin = originSec;
+        openKpiModal(kpi);
+      }
+    }
+
+    // Direct Target Column Switcher from Dropdown on the Card
+    function updateKpiDirectColumn(kpiId, originSec, newCol) {
+      const store = sectionStores[originSec];
+      if (!store) return;
+      const kpi = store.kpis.find(k => k.id === kpiId);
+      if (kpi) {
+        kpi.col = newCol;
+        renderCurrentSectionKpis();
+      }
+    }
+
+    function deleteKpi(id, originSec = null) {
+      const targetSec = originSec || currentSection;
+      const store = sectionStores[targetSec];
+      if (store) store.kpis = store.kpis.filter(k => k.id !== id);
+      closeDrilldown();
+      renderCurrentSectionKpis();
+    }
+
+    function hideItemFromOverview(id) {
+      hiddenOverviewItems.add(id);
+      updateHiddenBadge();
+      renderCurrentSectionKpis();
+      renderCurrentSectionCharts();
+    }
+
+    function restoreAllHiddenItems() {
+      hiddenOverviewItems.clear();
+      updateHiddenBadge();
+      renderCurrentSectionKpis();
+      renderCurrentSectionCharts();
+    }
+
+    function updateHiddenBadge() {
+      const badge = document.getElementById('hidden-count-badge');
+      if (badge) badge.textContent = hiddenOverviewItems.size;
+    }
+
+    // RENDER COMPACT MODERN KPI CARDS (NO 2.7K, DROPDOWN ACTIVE, FITS 5-6 IN LINE)
+    function renderCurrentSectionKpis() {
+      const container = document.getElementById('kpi-cards-grid');
+      container.innerHTML = '';
+
+      let kpisToRender = [];
+      if (currentSection === 'overview') {
+        availableSections.forEach(sec => {
+          if (sec !== 'overview' && sec !== 'reports') {
+            sectionStores[sec].kpis.forEach(k => {
+              if (!hiddenOverviewItems.has(k.id)) {
+                kpisToRender.push({ ...k, sectionOrigin: sec });
+              }
+            });
+          }
+        });
+      } else {
+        kpisToRender = sectionStores[currentSection].kpis.map(k => ({ ...k, sectionOrigin: currentSection }));
+      }
+
+      if (kpisToRender.length === 0) {
+        container.innerHTML = `<div class="col-span-full py-6 text-center text-xs text-slate-500 bg-slate-950/60 rounded-xl border border-dashed border-slate-800">No KPI Cards available for this selection.</div>`;
+        return;
+      }
+
+      kpisToRender.forEach(k => {
+        const rawData = getSheetDataBySlot(k.slot, k.sectionOrigin);
+        let filtered = applyFiltersToDataset(rawData);
+
+        // Filter based on custom logic (Regrettable / Male / Female)
+        if (k.customFilter === 'regrettable') {
+          filtered = filtered.filter(r => {
+            const val = String(r[k.col] || '').trim().toLowerCase();
+            return val.includes('regrettable') && !val.includes('non');
+          });
+        } else if (k.customFilter === 'non_regrettable') {
+          filtered = filtered.filter(r => {
+            const val = String(r[k.col] || '').trim().toLowerCase();
+            return val.includes('non') || val.includes('unregret');
+          });
+        } else if (k.customFilter === 'male') {
+          filtered = filtered.filter(r => {
+            const val = String(r[k.col] || '').trim().toLowerCase();
+            return val.startsWith('m');
+          });
+        } else if (k.customFilter === 'female') {
+          filtered = filtered.filter(r => {
+            const val = String(r[k.col] || '').trim().toLowerCase();
+            return val.startsWith('f');
+          });
+        }
+
+        let finalVal = 0;
+        if (k.calc.includes('count')) {
+          finalVal = filtered.length;
+        } else if (k.calc === 'sum') {
+          finalVal = filtered.reduce((acc, r) => acc + (parseFloat(r[k.col]) || 0), 0);
+        } else if (k.calc === 'average') {
+          const sum = filtered.reduce((acc, r) => acc + (parseFloat(r[k.col]) || 0), 0);
+          finalVal = filtered.length ? (sum / filtered.length).toFixed(1) : 0;
+        } else if (k.calc === 'latest') {
+          finalVal = filtered.length ? filtered[filtered.length - 1][k.col] : 0;
+        }
+
+        // FORMAT: REAL NUMBERS WITH COMMAS (NO 2.7K)
+        let displayVal = finalVal;
+        if (k.format === 'percentage') displayVal = finalVal + '%';
+        else if (k.format === 'currency') displayVal = '$' + Number(finalVal).toLocaleString();
+        else displayVal = Number(finalVal).toLocaleString(); // Always real numbers
+
+        let specialClass = '';
+        let visualArtIcon = '';
+        if (k.customFilter === 'male') {
+          specialClass = 'male-card';
+          visualArtIcon = '<i class="fa-solid fa-mars text-cyan-400 text-2xl opacity-25 absolute right-3 top-7"></i>';
+        } else if (k.customFilter === 'female') {
+          specialClass = 'female-card';
+          visualArtIcon = '<i class="fa-solid fa-venus text-pink-400 text-2xl opacity-25 absolute right-3 top-7"></i>';
+        } else if (k.customFilter === 'regrettable') {
+          specialClass = 'regret-card';
+          visualArtIcon = '<i class="fa-solid fa-heart-crack text-purple-400 text-2xl opacity-20 absolute right-3 top-7"></i>';
+        } else if (k.customFilter === 'non_regrettable') {
+          specialClass = 'non-regret-card';
+        }
+
+        // Populate active column dropdown options
+        const allCols = rawData.length > 0 ? Object.keys(rawData[0]) : [];
+        let colOptionsHtml = '';
+        allCols.forEach(colName => {
+          colOptionsHtml += `<option value="${colName}" class="bg-slate-900 text-white" ${colName === k.col ? 'selected' : ''}>${colName}</option>`;
+        });
+
+        const card = document.createElement('div');
+        card.className = `dark-kpi-card flex flex-col justify-between ${specialClass}`;
+        card.setAttribute('title', 'Double-click to view underlying detailed records');
+        card.ondblclick = () => handleKpiDrillDown(k, filtered);
+
+        card.innerHTML = `
+          <!-- Header Bar with KPI Trend & Font Size Controls -->
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-1.5 text-blue-400 text-[11px] font-bold tracking-wide truncate">
+              <i class="fa-solid fa-arrow-trend-up"></i>
+              <span class="truncate">${k.title}</span>
+            </div>
+            <div class="flex items-center gap-0.5 flex-shrink-0">
+              ${currentSection === 'overview' ? `
+                <button onclick="event.stopPropagation(); hideItemFromOverview('${k.id}')" class="text-slate-400 hover:text-amber-400 text-[10px] mr-1" title="Hide from Overview">
+                  <i class="fa-solid fa-eye-slash"></i>
+                </button>
+              ` : ''}
+              <button onclick="event.stopPropagation(); adjustKpiFontSize('${k.id}', -2)" class="text-[9px] bg-slate-800/80 hover:bg-slate-700 text-slate-300 px-1 py-0.5 rounded border border-slate-700">A-</button>
+              <button onclick="event.stopPropagation(); adjustKpiFontSize('${k.id}', 2)" class="text-[9px] bg-slate-800/80 hover:bg-slate-700 text-slate-300 px-1 py-0.5 rounded border border-slate-700">A+</button>
+            </div>
+          </div>
+
+          <!-- Main Metric (Pure Real Numbers) -->
+          <div class="my-1.5 relative">
+            ${visualArtIcon}
+            <h3 id="kpi-val-${k.id}" class="text-2xl font-black text-white tracking-tight">${displayVal}</h3>
+            <p class="text-[10px] text-slate-400 font-medium truncate mt-0.5">${k.subtitle || k.col || 'Calculated Metric'}</p>
+            <div class="inline-block mt-1">
+              <span class="bg-blue-600/90 text-white text-[9px] font-bold px-2 py-0.5 rounded shadow-sm uppercase tracking-wider">
+                ${k.calc.toUpperCase()}
+              </span>
+            </div>
+          </div>
+
+          <!-- Active Interactive Column Dropdown -->
+          <div class="bg-slate-900 border border-slate-800 rounded-md px-1.5 py-1 my-1 flex items-center justify-between text-[11px]">
+            <select onchange="event.stopPropagation(); updateKpiDirectColumn('${k.id}', '${k.sectionOrigin}', this.value)" class="w-full bg-transparent text-slate-300 focus:outline-none cursor-pointer truncate font-medium">
+              ${colOptionsHtml || `<option value="${k.col}">${k.col || 'Target Field'}</option>`}
+            </select>
+          </div>
+
+          <!-- Quick Action Buttons Bar -->
+          <div class="flex items-center justify-between pt-1.5 border-t border-slate-800/80 mt-0.5 text-[9px]">
+            <div class="flex items-center gap-1">
+              <button onclick="event.stopPropagation(); editKpi('${k.id}', '${k.sectionOrigin}')" class="bg-slate-800/70 hover:bg-slate-700 text-slate-300 px-1.5 py-0.5 rounded border border-slate-700/60">Label</button>
+              <button onclick="event.stopPropagation(); editKpi('${k.id}', '${k.sectionOrigin}')" class="bg-slate-800/70 hover:bg-slate-700 text-slate-300 px-1.5 py-0.5 rounded border border-slate-700/60">Calc</button>
+              <button onclick="event.stopPropagation(); editKpi('${k.id}', '${k.sectionOrigin}')" class="bg-slate-800/70 hover:bg-slate-700 text-slate-300 px-1.5 py-0.5 rounded border border-slate-700/60">Format</button>
+            </div>
+            <button onclick="event.stopPropagation(); deleteKpi('${k.id}', '${k.sectionOrigin}')" class="text-slate-500 hover:text-rose-400 text-xs" title="Delete KPI">
+              <i class="fa-solid fa-trash"></i>
+            </button>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    function adjustKpiFontSize(id, delta) {
+      const el = document.getElementById(`kpi-val-${id}`);
+      if (!el) return;
+      let currentSize = parseInt(window.getComputedStyle(el).fontSize);
+      el.style.fontSize = `${Math.max(16, Math.min(42, currentSize + delta))}px`;
+    }
+
+    function handleKpiDrillDown(kpi, filteredRows) {
+      currentDrilldownRows = filteredRows;
+      const container = document.getElementById('kpi-drilldown-container');
+      const title = document.getElementById('drilldown-title');
+      const badge = document.getElementById('drilldown-count-badge');
+      const thead = document.getElementById('drilldown-head');
+      const tbody = document.getElementById('drilldown-body');
+
+      title.innerHTML = `<span class="text-indigo-400 font-bold">${kpi.title}</span> - Detailed Breakdown`;
+      badge.textContent = `${filteredRows.length} Extracted Records`;
+
+      thead.innerHTML = '';
+      tbody.innerHTML = '';
+
+      if (filteredRows.length === 0) {
+        tbody.innerHTML = '<tr><td class="p-4 text-center text-slate-500">No records found matching current active filters.</td></tr>';
+      } else {
+        const cols = Object.keys(filteredRows[0]);
+        let hHtml = '<tr>';
+        cols.forEach(c => hHtml += `<th class="px-3.5 py-2.5 text-left text-xs font-bold text-slate-300 uppercase tracking-wider bg-slate-900 border-b border-slate-800">${c}</th>`);
+        hHtml += '</tr>';
+        thead.innerHTML = hHtml;
+
+        filteredRows.forEach(row => {
+          let rHtml = '<tr class="hover:bg-slate-900/60 transition">';
+          cols.forEach(c => {
+            let val = row[c];
+            if (val instanceof Date) val = val.toLocaleDateString();
+            rHtml += `<td class="px-3.5 py-2 whitespace-nowrap text-xs text-slate-300 border-b border-slate-800/80">${val !== undefined ? val : ''}</td>`;
+          });
+          rHtml += '</tr>';
+          tbody.innerHTML += rHtml;
+        });
+      }
+
+      container.classList.remove('hidden');
+      container.scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function closeDrilldown() {
+      document.getElementById('kpi-drilldown-container').classList.add('hidden');
+    }
+
+    function exportDrilldownToExcel() {
+      if (currentDrilldownRows.length === 0) {
+        alert("Export karne ke liye koi data moujood nahi hai.");
+        return;
+      }
+      const ws = XLSX.utils.json_to_sheet(currentDrilldownRows);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "KPI_Details");
+      XLSX.writeFile(wb, "KPI_DrillDown_Records.xlsx");
+    }
+
+    // Chart Configuration & Top N Filter Engine
+    function openChartModal(chartToEdit = null) {
+      const targetSec = chartToEdit ? chartToEdit.sectionOrigin : currentSection;
+      const store = sectionStores[targetSec];
+      if (!store.fileName) {
+        alert("Pehle is section ke liye Excel file upload karein.");
+        return;
+      }
+
+      const modalTitle = document.getElementById('chart-modal-title');
+      const saveBtn = document.getElementById('chart-save-btn');
+
+      if (chartToEdit) {
+        modalTitle.innerHTML = '<i class="fa-solid fa-pen-to-square text-indigo-400"></i> Edit Chart & Resize';
+        saveBtn.textContent = 'Update Chart';
+        document.getElementById('editing-chart-id').value = chartToEdit.id;
+        document.getElementById('editing-chart-section').value = targetSec;
+        document.getElementById('modal-chart-title').value = chartToEdit.title;
+        document.getElementById('modal-chart-slot').value = chartToEdit.slot;
+        document.getElementById('modal-chart-type').value = chartToEdit.type;
+        document.getElementById('modal-chart-topn').value = chartToEdit.topN || 'all';
+        document.getElementById('modal-chart-width').value = chartToEdit.widthClass || 'col-span-1';
+        document.getElementById('modal-chart-height').value = chartToEdit.heightClass || 'h-72';
+        populateModalAxisSelectors(targetSec);
+        document.getElementById('modal-chart-xaxis').value = chartToEdit.xAxis;
+        document.getElementById('modal-chart-yaxis').value = chartToEdit.yAxis;
+        document.getElementById('modal-chart-agg').value = chartToEdit.agg;
+        document.getElementById('modal-chart-format').value = chartToEdit.format;
+        document.getElementById('modal-chart-datalabels').value = chartToEdit.datalabels;
+        document.getElementById('modal-color-start').value = chartToEdit.colorStart;
+        document.getElementById('modal-color-end').value = chartToEdit.colorEnd;
+      } else {
+        modalTitle.innerHTML = '<i class="fa-solid fa-chart-pie text-indigo-400"></i> Configure & Create Chart';
+        saveBtn.textContent = 'Create Chart';
+        document.getElementById('editing-chart-id').value = '';
+        document.getElementById('editing-chart-section').value = currentSection;
+        document.getElementById('modal-chart-title').value = '';
+        document.getElementById('modal-chart-slot').value = '1';
+        document.getElementById('modal-chart-type').value = 'bar';
+        document.getElementById('modal-chart-topn').value = 'all';
+        document.getElementById('modal-chart-width').value = 'col-span-1';
+        document.getElementById('modal-chart-height').value = 'h-72';
+        populateModalAxisSelectors(currentSection);
+        document.getElementById('modal-chart-agg').value = 'sum';
+        document.getElementById('modal-chart-format').value = 'number';
+        document.getElementById('modal-chart-datalabels').value = 'show';
+        document.getElementById('modal-color-start').value = '#3b82f6';
+        document.getElementById('modal-color-end').value = '#93c5fd';
+      }
+
+      document.getElementById('chart-modal').classList.remove('hidden');
+    }
+
+    function closeChartModal() {
+      document.getElementById('chart-modal').classList.add('hidden');
+    }
+
+    function populateModalAxisSelectors(sec = null) {
+      const targetSec = sec || document.getElementById('editing-chart-section').value || currentSection;
+      const slot = document.getElementById('modal-chart-slot').value;
+      const data = getSheetDataBySlot(slot, targetSec);
+      const xAxis = document.getElementById('modal-chart-xaxis');
+      const yAxis = document.getElementById('modal-chart-yaxis');
+
+      xAxis.innerHTML = '<option value="">Select Column</option>';
+      yAxis.innerHTML = '<option value="">Select Column</option>';
+
+      if (data.length > 0) {
+        Object.keys(data[0]).forEach(c => {
+          xAxis.innerHTML += `<option value="${c}">${c}</option>`;
+          yAxis.innerHTML += `<option value="${c}">${c}</option>`;
+        });
+      }
+    }
+
+    function saveAndBuildChart() {
+      const editId = document.getElementById('editing-chart-id').value;
+      const editSection = document.getElementById('editing-chart-section').value || currentSection;
+      const title = document.getElementById('modal-chart-title').value.trim() || 'Visual Chart';
+      const slot = document.getElementById('modal-chart-slot').value;
+      const type = document.getElementById('modal-chart-type').value;
+      const topN = document.getElementById('modal-chart-topn').value;
+      const widthClass = document.getElementById('modal-chart-width').value;
+      const heightClass = document.getElementById('modal-chart-height').value;
+      const xAxis = document.getElementById('modal-chart-xaxis').value;
+      const yAxis = document.getElementById('modal-chart-yaxis').value;
+      const agg = document.getElementById('modal-chart-agg').value;
+      const format = document.getElementById('modal-chart-format').value;
+      const datalabels = document.getElementById('modal-chart-datalabels').value;
+      const colorStart = document.getElementById('modal-color-start').value;
+      const colorEnd = document.getElementById('modal-color-end').value;
+
+      if (!xAxis) {
+        alert("X-Axis dimension column lazmi select karein.");
+        return;
+      }
+
+      const store = sectionStores[editSection];
+
+      if (editId) {
+        const idx = store.charts.findIndex(c => c.id === editId);
+        if (idx !== -1) {
+          store.charts[idx] = { ...store.charts[idx], title, slot, type, topN, widthClass, heightClass, xAxis, yAxis, agg, format, datalabels, colorStart, colorEnd };
+        }
+      } else {
+        const chartConfig = { id: 'chart_' + Date.now(), sectionOrigin: currentSection, title, slot, type, topN, widthClass, heightClass, xAxis, yAxis, agg, format, datalabels, colorStart, colorEnd };
+        store.charts.push(chartConfig);
+      }
+
+      closeChartModal();
+      renderCurrentSectionCharts();
+    }
+
+    function editChart(chartId, originSec) {
+      const store = sectionStores[originSec];
+      if (!store) return;
+      const chart = store.charts.find(c => c.id === chartId);
+      if (chart) {
+        chart.sectionOrigin = originSec;
+        openChartModal(chart);
+      }
+    }
+
+    function updateChartTopNDirect(chartId, originSec, newTopN) {
+      const store = sectionStores[originSec];
+      if (!store) return;
+      const chart = store.charts.find(c => c.id === chartId);
+      if (chart) {
+        chart.topN = newTopN;
+        buildChartCanvas(chart);
+      }
+    }
+
+    function toggleChartWidth(chartId, originSec) {
+      const store = sectionStores[originSec];
+      if (!store) return;
+      const chart = store.charts.find(c => c.id === chartId);
+      if (!chart) return;
+
+      if (!chart.widthClass || chart.widthClass === 'col-span-1') {
+        chart.widthClass = 'col-span-1 md:col-span-2';
+      } else if (chart.widthClass === 'col-span-1 md:col-span-2') {
+        chart.widthClass = 'col-span-1 md:col-span-2 lg:col-span-3';
+      } else {
+        chart.widthClass = 'col-span-1';
+      }
+
+      renderCurrentSectionCharts();
+    }
+
+    function renderCurrentSectionCharts() {
+      const container = document.getElementById('charts-grid');
+      container.innerHTML = '';
+
+      let chartsToRender = [];
+      if (currentSection === 'overview') {
+        availableSections.forEach(sec => {
+          if (sec !== 'overview' && sec !== 'reports') {
+            sectionStores[sec].charts.forEach(c => {
+              if (!hiddenOverviewItems.has(c.id)) {
+                chartsToRender.push({ ...c, sectionOrigin: sec });
+              }
+            });
+          }
+        });
+      } else {
+        chartsToRender = sectionStores[currentSection].charts.map(c => ({ ...c, sectionOrigin: currentSection }));
+      }
+
+      if (chartsToRender.length === 0) {
+        container.innerHTML = `<div class="col-span-full py-12 text-center text-xs text-slate-500 bg-slate-950/60 rounded-xl border border-dashed border-slate-800">No Analytics Charts available for this section.</div>`;
+        return;
+      }
+
+      chartsToRender.forEach(cfg => {
+        const card = document.createElement('div');
+        card.className = `${cfg.widthClass || 'col-span-1'} bg-slate-950/80 rounded-xl shadow-lg border border-slate-800 p-4 flex flex-col justify-between transition-all`;
+        card.innerHTML = `
+          <div class="flex items-center justify-between mb-2 border-b border-slate-800 pb-2">
+            <div>
+              <h4 class="font-bold text-white text-sm">${cfg.title}</h4>
+              <div class="flex items-center gap-2 mt-0.5">
+                ${currentSection === 'overview' ? `
+                  <button onclick="hideItemFromOverview('${cfg.id}')" class="text-slate-400 hover:text-amber-400 text-xs" title="Hide from Overview">
+                    <i class="fa-solid fa-eye-slash"></i>
+                  </button>
+                  <span class="text-[9px] font-bold px-1.5 py-0.2 rounded bg-indigo-950 text-indigo-300 uppercase">${cfg.sectionOrigin.replace('-', ' ')}</span>
+                ` : ''}
+                <span class="text-[10px] text-slate-400 font-mono">Slot ${cfg.slot} | Dim: ${cfg.xAxis}</span>
+              </div>
+            </div>
+            
+            <div class="flex items-center gap-2">
+              <!-- Top N Quick Switcher Dropdown on Chart Header -->
+              <div class="flex items-center gap-1 bg-slate-900 border border-slate-700 rounded px-1.5 py-0.5 text-[10px]">
+                <span class="text-slate-400 font-medium">Show:</span>
+                <select onchange="updateChartTopNDirect('${cfg.id}', '${cfg.sectionOrigin}', this.value)" class="bg-transparent text-amber-400 font-bold focus:outline-none cursor-pointer">
+                  <option value="all" class="bg-slate-900" ${(!cfg.topN || cfg.topN === 'all') ? 'selected' : ''}>All</option>
+                  <option value="3" class="bg-slate-900" ${cfg.topN === '3' ? 'selected' : ''}>Top 3</option>
+                  <option value="5" class="bg-slate-900" ${cfg.topN === '5' ? 'selected' : ''}>Top 5</option>
+                  <option value="10" class="bg-slate-900" ${cfg.topN === '10' ? 'selected' : ''}>Top 10</option>
+                </select>
+              </div>
+
+              <button onclick="toggleChartWidth('${cfg.id}', '${cfg.sectionOrigin}')" class="text-slate-400 hover:text-indigo-400 text-xs p-1" title="Toggle Size (Width)">
+                <i class="fa-solid fa-table-columns"></i>
+              </button>
+              <button onclick="editChart('${cfg.id}', '${cfg.sectionOrigin}')" class="text-slate-400 hover:text-indigo-400 text-xs p-1" title="Edit Chart Parameters">
+                <i class="fa-solid fa-pen-to-square"></i>
+              </button>
+              <button onclick="deleteChart('${cfg.id}', '${cfg.sectionOrigin}')" class="text-slate-400 hover:text-rose-400 text-xs p-1" title="Delete Chart">
+                <i class="fa-solid fa-trash"></i>
+              </button>
+            </div>
+          </div>
+          <div class="relative ${cfg.heightClass || 'h-72'} w-full flex items-center justify-center">
+            <canvas id="${cfg.id}"></canvas>
+          </div>
+        `;
+        container.appendChild(card);
+        buildChartCanvas(cfg);
+      });
+    }
+
+    function buildChartCanvas(cfg) {
+      const rawData = getSheetDataBySlot(cfg.slot, cfg.sectionOrigin);
+      const filtered = applyFiltersToDataset(rawData);
+
+      const grouped = {};
+      filtered.forEach(row => {
+        let key = row[cfg.xAxis] || 'Unassigned';
+        if (key instanceof Date) key = key.toLocaleDateString();
+
+        let val = 1;
+        if (cfg.yAxis && row[cfg.yAxis] !== undefined) {
+          const parsed = parseFloat(row[cfg.yAxis]);
+          val = isNaN(parsed) ? 1 : parsed;
+        }
+
+        if (!grouped[key]) grouped[key] = { sum: 0, count: 0 };
+        grouped[key].sum += val;
+        grouped[key].count += 1;
+      });
+
+      let items = Object.keys(grouped).map(k => {
+        let metricVal = grouped[k].sum;
+        if (cfg.agg === 'count') metricVal = grouped[k].count;
+        if (cfg.agg === 'average') metricVal = grouped[k].count ? parseFloat((grouped[k].sum / grouped[k].count).toFixed(2)) : 0;
+        return { label: k, value: metricVal };
+      });
+
+      // Sort descending for ranking
+      items.sort((a, b) => b.value - a.value);
+
+      // Apply Top N Filter (Top 3, Top 5, Top 10)
+      if (cfg.topN && cfg.topN !== 'all') {
+        const n = parseInt(cfg.topN);
+        if (!isNaN(n) && n > 0) {
+          items = items.slice(0, n);
+        }
+      }
+
+      const labels = items.map(i => i.label);
+      const values = items.map(i => i.value);
+
+      const ctx = document.getElementById(cfg.id).getContext('2d');
+      const gradient = ctx.createLinearGradient(0, 0, 0, 300);
+      gradient.addColorStop(0, cfg.colorStart);
+      gradient.addColorStop(1, cfg.colorEnd);
+
+      let chartType = cfg.type === 'horizontalBar' ? 'bar' : (cfg.type === 'area' ? 'line' : (cfg.type === 'stackedBar' ? 'bar' : cfg.type));
+      let isHorizontal = cfg.type === 'horizontalBar';
+      let isStacked = cfg.type === 'stackedBar';
+      let isArea = cfg.type === 'area';
+
+      if (chartInstances[cfg.id]) chartInstances[cfg.id].destroy();
+
+      chartInstances[cfg.id] = new Chart(ctx, {
+        type: chartType,
+        data: {
+          labels: labels,
+          datasets: [{
+            label: cfg.yAxis || cfg.xAxis,
+            data: values,
+            backgroundColor: (chartType === 'pie' || chartType === 'doughnut') ? generatePalette(labels.length) : gradient,
+            borderColor: cfg.colorStart,
+            borderWidth: 1,
+            fill: isArea,
+            tension: 0.35
+          }]
+        },
+        options: {
+          indexAxis: isHorizontal ? 'y' : 'x',
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: (chartType === 'pie' || chartType === 'doughnut') ? {} : {
+            x: { stacked: isStacked, grid: { color: '#1e293b' }, ticks: { color: '#94a3b8' } },
+            y: { stacked: isStacked, grid: { color: '#1e293b' }, ticks: { color: '#94a3b8' } }
+          },
+          plugins: {
+            legend: {
+              display: (chartType === 'pie' || chartType === 'doughnut'),
+              position: 'bottom',
+              labels: { boxWidth: 10, font: { size: 10 }, color: '#cbd5e1' }
+            },
+            datalabels: {
+              display: cfg.datalabels === 'show',
+              color: '#f8fafc',
+              font: { weight: 'bold', size: 10 },
+              formatter: function(val) {
+                if (cfg.format === 'percentage') return val + '%';
+                if (cfg.format === 'currency') return '$' + Number(val).toLocaleString();
+                return Number(val).toLocaleString(); // Real numbers with commas
+              }
+            }
+          }
+        }
+      });
+    }
+
+    function deleteChart(id, originSec = null) {
+      if (chartInstances[id]) chartInstances[id].destroy();
+      const targetSec = originSec || currentSection;
+      const store = sectionStores[targetSec];
+      if (store) store.charts = store.charts.filter(c => c.id !== id);
+      renderCurrentSectionCharts();
+    }
+
+    function generatePalette(num) {
+      const colors = ['#0284c7', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#06b6d4', '#84cc16'];
+      return Array.from({ length: num }, (_, i) => colors[i % colors.length]);
+    }
+
+    function renderRawTable() {
+      const slotPicker = document.getElementById('table-sheet-picker').value;
+      const data = getSheetDataBySlot(slotPicker);
+      const filtered = applyFiltersToDataset(data);
+
+      const tableHead = document.getElementById('table-head');
+      const tableBody = document.getElementById('table-body');
+      const badge = document.getElementById('row-count-badge');
+
+      tableHead.innerHTML = '';
+      tableBody.innerHTML = '';
+
+      if (filtered.length === 0) {
+        badge.textContent = '0 Rows';
+        return;
+      }
+
+      badge.textContent = `${filtered.length} Filtered Rows`;
+      const cols = Object.keys(filtered[0]);
+
+      let headerHtml = '<tr>';
+      cols.forEach(c => headerHtml += `<th class="px-3 py-2 text-left text-xs font-semibold text-slate-300 uppercase tracking-wider">${c}</th>`);
+      headerHtml += '</tr>';
+      tableHead.innerHTML = headerHtml;
+
+      filtered.slice(0, 15).forEach(row => {
+        let rowHtml = '<tr class="hover:bg-slate-900/50">';
+        cols.forEach(c => {
+          let val = row[c];
+          if (val instanceof Date) val = val.toLocaleDateString();
+          rowHtml += `<td class="px-3 py-2 whitespace-nowrap text-xs text-slate-300">${val !== undefined ? val : ''}</td>`;
+        });
+        rowHtml += '</tr>';
+        tableBody.innerHTML += rowHtml;
+      });
+    }
+
+    // DASHBOARD EXPORT ENGINE (html2canvas)
+    function downloadDashboardAsImage() {
+      const target = document.getElementById('view-container');
+      const originalScroll = target.scrollTop;
+      
+      const btn = event.currentTarget;
+      const oldHtml = btn.innerHTML;
+      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Exporting...';
+
+      html2canvas(target, {
+        backgroundColor: '#0b1120',
+        scale: 2, // High resolution capture
+        useCORS: true,
+        logging: false
+      }).then(canvas => {
+        const link = document.createElement('a');
+        link.download = `HR_Dashboard_${currentSection}_${new Date().toISOString().slice(0,10)}.png`;
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+        btn.innerHTML = oldHtml;
+      }).catch(err => {
+        console.error("Export error:", err);
+        alert("Export failed. Please check browser permissions.");
+        btn.innerHTML = oldHtml;
+      });
+    }
+
+    // Initialize Hierarchy on Page Load
+    window.addEventListener('DOMContentLoaded', () => {
+      initRegionDropdown();
+      switchTab('overview');
+    });
+  </script>
+</body>
+</html>
